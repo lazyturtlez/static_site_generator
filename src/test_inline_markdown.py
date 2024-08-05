@@ -3,7 +3,9 @@ import unittest
 from inline_markdown import (
     split_nodes_delimiter,
     extract_markdown_images,
-    extract_markdown_links
+    extract_markdown_links,
+    split_nodes_image,
+    split_nodes_link
 )
 
 from textnode import (
@@ -155,3 +157,105 @@ class TestExtractMarkdownLinks(unittest.TestCase):
         text = "no matches should be found"
         matches = extract_markdown_links(text)
         self.assertListEqual([], matches)
+
+class TextSplitNodesImage(unittest.TestCase):
+    def test_single_image(self):
+        node = TextNode("This has one ![test image 1](test link 1) test image", TEXT_TYPE_TEXT)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This has one ", TEXT_TYPE_TEXT),
+                TextNode("test image 1", TEXT_TYPE_IMAGE, "test link 1"),
+                TextNode(" test image", TEXT_TYPE_TEXT)
+            ],
+            new_nodes
+        )
+
+    def test_single_image_at_end(self):
+        node = TextNode("This has one ![test image 1](test link 1)", TEXT_TYPE_TEXT)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This has one ", TEXT_TYPE_TEXT),
+                TextNode("test image 1", TEXT_TYPE_IMAGE, "test link 1")
+            ],
+            new_nodes
+        )
+
+    def test_multiple_image_at_end(self):
+        node = TextNode("This has two ![test image 1](test link 1) test images ![test image 2](test link 2)", TEXT_TYPE_TEXT)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This has two ", TEXT_TYPE_TEXT),
+                TextNode("test image 1", TEXT_TYPE_IMAGE, "test link 1"),
+                TextNode(" test images ", TEXT_TYPE_TEXT),
+                TextNode("test image 2", TEXT_TYPE_IMAGE, "test link 2"),
+            ],
+            new_nodes
+        )
+
+    def test_multiple_image(self):
+        node = TextNode("This has two ![test image 1](test link 1) test images ![test image 2](test link 2) here", TEXT_TYPE_TEXT)
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This has two ", TEXT_TYPE_TEXT),
+                TextNode("test image 1", TEXT_TYPE_IMAGE, "test link 1"),
+                TextNode(" test images ", TEXT_TYPE_TEXT),
+                TextNode("test image 2", TEXT_TYPE_IMAGE, "test link 2"),
+                TextNode(" here", TEXT_TYPE_TEXT),
+            ],
+            new_nodes
+        )
+
+class TextSplitNodesLink(unittest.TestCase):
+    def test_single_link(self):
+        node = TextNode("This has one [test text 1](test link 1) test link", TEXT_TYPE_TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This has one ", TEXT_TYPE_TEXT),
+                TextNode("test text 1", TEXT_TYPE_LINK, "test link 1"),
+                TextNode(" test link", TEXT_TYPE_TEXT)
+            ],
+            new_nodes
+        )
+
+    def test_single_link_at_end(self):
+        node = TextNode("This has one [test text 1](test link 1)", TEXT_TYPE_TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This has one ", TEXT_TYPE_TEXT),
+                TextNode("test text 1", TEXT_TYPE_LINK, "test link 1")
+            ],
+            new_nodes
+        )
+
+    def test_multiple_links_at_end(self):
+        node = TextNode("This has two [test text 1](test link 1) test links [test text 2](test link 2)", TEXT_TYPE_TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This has two ", TEXT_TYPE_TEXT),
+                TextNode("test text 1", TEXT_TYPE_LINK, "test link 1"),
+                TextNode(" test links ", TEXT_TYPE_TEXT),
+                TextNode("test text 2", TEXT_TYPE_LINK, "test link 2"),
+            ],
+            new_nodes
+        )
+
+    def test_multiple_links(self):
+        node = TextNode("This has two [test text 1](test link 1) test links [test text 2](test link 2) here", TEXT_TYPE_TEXT)
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This has two ", TEXT_TYPE_TEXT),
+                TextNode("test text 1", TEXT_TYPE_LINK, "test link 1"),
+                TextNode(" test links ", TEXT_TYPE_TEXT),
+                TextNode("test text 2", TEXT_TYPE_LINK, "test link 2"),
+                TextNode(" here", TEXT_TYPE_TEXT),
+            ],
+            new_nodes
+        )
