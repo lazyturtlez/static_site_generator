@@ -26,7 +26,7 @@ def split_nodes_delimiter(old_nodes: list[TextNode], delimiter, text_type):
                 split_nodes.append(TextNode(sections[i], TEXT_TYPE_TEXT))
             else:
                 split_nodes.append(TextNode(sections[i], text_type))
-    new_nodes.extend(split_nodes)
+        new_nodes.extend(split_nodes)
     return new_nodes
 
 def extract_markdown_images(text):
@@ -37,7 +37,7 @@ def extract_markdown_links(text):
     matches = re.findall(r"\[(.*?)\]\((.*?)\)", text)
     return matches
 
-def split_nodes_image(old_nodes):
+def split_nodes_image(old_nodes: list[TextNode]):
     new_nodes = []
     for old_node in old_nodes:
         if old_node.text_type != TEXT_TYPE_TEXT:
@@ -67,7 +67,7 @@ def split_nodes_image(old_nodes):
     return new_nodes
 
 
-def split_nodes_link(old_nodes):
+def split_nodes_link(old_nodes: list[TextNode]):
     new_nodes = []
     for old_node in old_nodes:
         if old_node.text_type != TEXT_TYPE_TEXT:
@@ -89,3 +89,12 @@ def split_nodes_link(old_nodes):
         if original_text != "":
             new_nodes.append(TextNode(original_text, TEXT_TYPE_TEXT))
     return new_nodes
+
+def text_to_textnodes(text):
+    nodes = [TextNode(text, TEXT_TYPE_TEXT)]
+    nodes = split_nodes_delimiter(nodes, "**", TEXT_TYPE_BOLD)
+    nodes = split_nodes_delimiter(nodes, "*", TEXT_TYPE_ITALIC)
+    nodes = split_nodes_delimiter(nodes, "`", TEXT_TYPE_CODE)
+    nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
+    return nodes
